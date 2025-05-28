@@ -47,7 +47,7 @@ def cadastrar_ocorrencia(lista_ocorrencias):
     if cidade == "":
         print("A cidade deve ser informada!")
         return
-    nivel_agua = input("Nível da água em metros (se não souber deixe em branco): ")
+    nivel_agua = input("Nível da água em centímetros (se não souber deixe em branco): ")
     if nivel_agua == "":
         nivel_agua = "desconhecido"
         print("Nível de água foi colocado como 'Desconhecido'")
