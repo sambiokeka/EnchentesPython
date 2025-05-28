@@ -110,8 +110,8 @@ def visualizar_estatisticas(lista_ocorrencias):
     for i, ocorrencia in enumerate(lista_ocorrencias):
         print(f"\nOcorrência {i+1}:")
         print(f" Cidade: {ocorrencia['cidade']}")
-        print(f" Nível da água: {ocorrencia['nivel_agua']}")
-        print(f" Pessoas afetadas: {ocorrencia['pessoas_afetadas']}")
+        print(f" Nível da água: {ocorrencia['nivel_agua']} cm")
+        print(f" Pessoas afetadas: {ocorrencia['pessoas_afetadas']} pessoas")
         print(f" Data: {ocorrencia['data']}")
 
 # Ativa quando a opção 3 é selecionada, mostra as orientações em caso de enchente
