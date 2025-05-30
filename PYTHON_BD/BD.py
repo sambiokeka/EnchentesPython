@@ -23,9 +23,9 @@ def menu():
     print("5. Sair")
     while True:
         opcao = input("Escolha uma opção: ")
-        if opcao.isdigit():
+        if(opcao.isdigit()):
             opcao = int(opcao)
-            if opcao in [1,2,3,4,5]:
+            if(opcao in [1,2,3,4,5]):
                 return opcao
             else:
                 print("Opção inválida. Tente novamente.")
@@ -60,14 +60,14 @@ def salvar_ocorrencia(ocorrencia):
 
 def deletar_ocorrencia_por_indice(indice):
     ocorrencias = carregar_ocorrencias()
-    if 0 <= indice < len(ocorrencias):
+    if(0 <= indice < len(ocorrencias)):
         ocorrencia = ocorrencias[indice]
         conn = conectar_mysql()
         cursor = conn.cursor()
         conditions = []
         params = []
         for campo in ['cidade', 'nivel_agua', 'pessoas_afetadas', 'data_enchente']:
-            if ocorrencia[campo] is not None:
+            if(ocorrencia[campo] is not None):
                 conditions.append(f"{campo} = %s")
                 params.append(ocorrencia[campo])
             else:
@@ -88,28 +88,28 @@ def deletar_ocorrencia_por_indice(indice):
 def cadastrar_ocorrencia():
     print("\nCadastro de Ocorrência")
     cidade = input("Informe a cidade (Nome inteiro sem abreviações): ").strip()
-    if cidade == "":
+    if(cidade == ""):
         print("A cidade deve ser informada!")
         return
     nivel_agua = input("Nível da água em metros (se não souber deixe em branco): ")
-    if nivel_agua == "":
+    if(nivel_agua == ""):
         nivel_agua = "desconhecido"
         print("Nível de água foi colocado como 'Desconhecido'")
-    elif (nivel_agua.isdigit() or decimal_agua(nivel_agua)):
+    elif(nivel_agua.isdigit() or decimal_agua(nivel_agua)):
         nivel_agua = float(nivel_agua)
-        if nivel_agua < 0:
+        if(nivel_agua < 0):
             print("Nível de água não pode ser negativo.")
             return
     else:
         print("Formato de valor inválido!")
         return
     pessoas_afetadas = input("Número de pessoas afetadas (se não souber deixe em branco): ")
-    if pessoas_afetadas == "":
+    if(pessoas_afetadas == ""):
         pessoas_afetadas = "desconhecido"
         print("Numero de pessoas afetadas foi colocado como 'Desconhecido'")
-    elif pessoas_afetadas.isdigit():
+    elif(pessoas_afetadas.isdigit()):
         pessoas_afetadas = int(pessoas_afetadas)
-        if pessoas_afetadas < 0:
+        if(pessoas_afetadas < 0):
             print("Numero de pessoas afetadas não pode ser negativo.")
             return
     else:
@@ -117,18 +117,18 @@ def cadastrar_ocorrencia():
         return
     ano = 2025
     mes = input("Qual o mês da ocorrencia (use o número, ex: 1 para Janeiro): ").strip()
-    if mes.isdigit():
+    if(mes.isdigit()):
         mes = int(mes)
-        if mes > 12 or mes < 1:
+        if(mes > 12 or mes < 1):
             print("Valor absurdo, logo não será aceito")
             return
     else:
         print("Formato de valor inválido!")
         return
     dia = input("Qual o dia da ocorrencia: ").strip()
-    if dia.isdigit():
+    if(dia.isdigit()):
         dia = int(dia)
-        if dia > 31 or dia < 1:
+        if(dia > 31 or dia < 1):
             print("Valor absurdo, logo não será aceito")
             return
     else:
@@ -150,7 +150,7 @@ def cadastrar_ocorrencia():
 def visualizar_ocorrencias():
     print("\n--- Estatísticas de Ocorrências ---")
     lista_ocorrencias = carregar_ocorrencias()
-    if not lista_ocorrencias:
+    if(not lista_ocorrencias):
         print("Nenhuma ocorrência cadastrada.")
         return
     for i, ocorrencia in enumerate(lista_ocorrencias):
@@ -158,13 +158,13 @@ def visualizar_ocorrencias():
         print(f" Cidade: {ocorrencia['cidade']}")
 
         nivel = ocorrencia['nivel_agua']
-        if nivel is None:
+        if(nivel is None):
             print(" Nível da água: Desconhecido")
         else:
             print(f" Nível da água: {nivel} metros")
 
         pessoas = ocorrencia['pessoas_afetadas']
-        if pessoas is None:
+        if(pessoas is None):
             print(" Pessoas afetadas: Desconhecido")
         else:
             print(f" Pessoas afetadas: {pessoas} pessoas")
@@ -173,14 +173,14 @@ def visualizar_ocorrencias():
 
 def deletar_ocorrencia():
     lista_ocorrencias = carregar_ocorrencias()
-    if not lista_ocorrencias:
+    if(not lista_ocorrencias):
         print("Nenhuma ocorrência cadastrada.")
         return
     visualizar_ocorrencias()
     numero = input("Informe o número da ocorrência que deseja deletar: ")
-    if numero.isdigit():
+    if(numero.isdigit()):
         numero = int(numero)
-        if 1 <= numero <= len(lista_ocorrencias):
+        if(1 <= numero <= len(lista_ocorrencias)):
             deletar_ocorrencia_por_indice(numero - 1)
         else:
             print("Número inválido de ocorrência.")
@@ -198,15 +198,15 @@ def orientacoes():
 def main():
     while True:
         opcao = menu()
-        if opcao == 1:
+        if(opcao == 1):
             cadastrar_ocorrencia()
-        elif opcao == 2:
+        elif(opcao == 2):
             visualizar_ocorrencias()
-        elif opcao == 3:
+        elif(opcao == 3):
             orientacoes()
-        elif opcao == 4:
+        elif(opcao == 4):
             deletar_ocorrencia()
-        elif opcao == 5:
+        elif(opcao == 5):
             print("Saindo do sistema. Até logo!")
             break
 
