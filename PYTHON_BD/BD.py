@@ -1,31 +1,23 @@
-import json
-import os
+import mysql.connector
 
-PASTA_ATUAL = os.path.dirname(os.path.abspath(__file__))
-ARQUIVO_BD = os.path.join(PASTA_ATUAL, "ocorrencias.json")
+DB_CONFIG = {
+    "user": "root",
+    "password": "root",
+    "host": "localhost",
+    "database": "enchentes_BD"
+}
 
-def carregar_ocorrencias():
-    """Carrega o banco de dados de ocorrências do arquivo JSON."""
-    if os.path.exists(ARQUIVO_BD):
-        with open(ARQUIVO_BD, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
+def conectar_mysql():
+    return mysql.connector.connect(**DB_CONFIG)
 
-def salvar_ocorrencias(lista_ocorrencias):
-    """Salva o banco de dados de ocorrências no arquivo JSON."""
-    with open(ARQUIVO_BD, "w", encoding="utf-8") as f:
-        json.dump(lista_ocorrencias, f, indent=2, ensure_ascii=False)
-
-# Função pra permitir que o nivel da agua receba valores decimais
 def decimal_agua(valor):
     partes = valor.split(".")
     return len(partes) == 2 and partes[0].isdigit() and partes[1].isdigit()
 
-# Função para o menu
 def menu():
     print("\n--- Sistema de Monitoramento de Enchentes ---")
     print("1. Cadastrar ocorrência de enchente")
-    print("2. Visualizar estatísticas")
+    print("2. Visualizar ocorrências")
     print("3. Orientações em caso de enchente")
     print("4. Deletar ocorrência")
     print("5. Sair")
@@ -40,14 +32,66 @@ def menu():
         else:
             print("Tipo de valor na opção invalido!")
 
-# Ativa quando a opção 1 é selecionada, para cadastrar ocorrencias de enchente
-def cadastrar_ocorrencia(lista_ocorrencias):
+def carregar_ocorrencias():
+    conn = conectar_mysql()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT cidade, nivel_agua, pessoas_afetadas, data_enchente FROM registros")
+    ocorrencias = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return ocorrencias
+
+def salvar_ocorrencia(ocorrencia):
+    conn = conectar_mysql()
+    cursor = conn.cursor()
+    query = """
+        INSERT INTO registros (cidade, nivel_agua, pessoas_afetadas, data_enchente)
+        VALUES (%s, %s, %s, %s)
+    """
+    cursor.execute(query, (
+        ocorrencia['cidade'],
+        None if ocorrencia['nivel_agua'] == "desconhecido" else ocorrencia['nivel_agua'],
+        None if ocorrencia['pessoas_afetadas'] == "desconhecido" else ocorrencia['pessoas_afetadas'],
+        ocorrencia['data_mysql']
+    ))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def deletar_ocorrencia_por_indice(indice):
+    ocorrencias = carregar_ocorrencias()
+    if 0 <= indice < len(ocorrencias):
+        ocorrencia = ocorrencias[indice]
+        conn = conectar_mysql()
+        cursor = conn.cursor()
+        conditions = []
+        params = []
+        for campo in ['cidade', 'nivel_agua', 'pessoas_afetadas', 'data_enchente']:
+            if ocorrencia[campo] is not None:
+                conditions.append(f"{campo} = %s")
+                params.append(ocorrencia[campo])
+            else:
+                conditions.append(f"{campo} IS NULL")
+        query = f"""
+            DELETE FROM registros
+            WHERE {' AND '.join(conditions)}
+            LIMIT 1
+        """
+        cursor.execute(query, tuple(params))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print(f"Ocorrência de {ocorrencia['cidade']} removida com sucesso.")
+    else:
+        print("Número inválido de ocorrência.")
+
+def cadastrar_ocorrencia():
     print("\nCadastro de Ocorrência")
     cidade = input("Informe a cidade (Nome inteiro sem abreviações): ").strip()
     if cidade == "":
         print("A cidade deve ser informada!")
         return
-    nivel_agua = input("Nível da água em centímetros (se não souber deixe em branco): ")
+    nivel_agua = input("Nível da água em metros (se não souber deixe em branco): ")
     if nivel_agua == "":
         nivel_agua = "desconhecido"
         print("Nível de água foi colocado como 'Desconhecido'")
@@ -91,72 +135,80 @@ def cadastrar_ocorrencia(lista_ocorrencias):
         print("Formato de valor inválido!")
         return
     data = f"{dia:02d}/{mes:02d}/{ano}"
+
+    data_mysql = f"{ano}-{mes:02d}-{dia:02d}"
     ocorrencia = {
         'cidade': cidade,
         'nivel_agua': nivel_agua,
         'pessoas_afetadas': pessoas_afetadas,
-        'data': data
+        'data': data,
+        'data_mysql': data_mysql
     }
-    lista_ocorrencias.append(ocorrencia)
-    salvar_ocorrencias(lista_ocorrencias)
+    salvar_ocorrencia(ocorrencia)
     print("Ocorrência cadastrada com sucesso!")
 
-# Ativa quando a opção 2 é selecionada, mostra as enchentes registradas
-def visualizar_estatisticas(lista_ocorrencias):
+def visualizar_ocorrencias():
     print("\n--- Estatísticas de Ocorrências ---")
+    lista_ocorrencias = carregar_ocorrencias()
     if not lista_ocorrencias:
         print("Nenhuma ocorrência cadastrada.")
         return
     for i, ocorrencia in enumerate(lista_ocorrencias):
         print(f"\nOcorrência {i+1}:")
         print(f" Cidade: {ocorrencia['cidade']}")
-        print(f" Nível da água: {ocorrencia['nivel_agua']} cm")
-        print(f" Pessoas afetadas: {ocorrencia['pessoas_afetadas']} pessoas")
-        print(f" Data: {ocorrencia['data']}")
 
-# Ativa quando a opção 3 é selecionada, mostra as orientações em caso de enchente
-def orientacoes():
-    print("\n--- Orientações em Caso de Enchente ---")
-    print("- Procure abrigo em locais elevados e seguros.")
-    print("- Evite contato com a água da enchente.")
-    print("- Desconecte aparelhos elétricos.")
-    print("- Siga as recomendações das autoridades locais.")
-    print("- Tenha sempre um kit de emergência preparado.")
-    print("- Em caso de emergência, ligue para 193 (Bombeiros) ou 199 (Defesa Civil).")
+        nivel = ocorrencia['nivel_agua']
+        if nivel is None:
+            print(" Nível da água: Desconhecido")
+        else:
+            print(f" Nível da água: {nivel} metros")
 
-# Ativa quando a opção 4 é selecionada, deleta uma ocorrencia
-def deletar_ocorrencia(lista_ocorrencias):
+        pessoas = ocorrencia['pessoas_afetadas']
+        if pessoas is None:
+            print(" Pessoas afetadas: Desconhecido")
+        else:
+            print(f" Pessoas afetadas: {pessoas} pessoas")
+
+        print(f" Data: {ocorrencia['data_enchente']}")
+
+def deletar_ocorrencia():
+    lista_ocorrencias = carregar_ocorrencias()
     if not lista_ocorrencias:
         print("Nenhuma ocorrência cadastrada.")
         return
-    visualizar_estatisticas(lista_ocorrencias)
+    visualizar_ocorrencias()
     numero = input("Informe o número da ocorrência que deseja deletar: ")
     if numero.isdigit():
         numero = int(numero)
         if 1 <= numero <= len(lista_ocorrencias):
-            removida = lista_ocorrencias.pop(numero - 1)
-            salvar_ocorrencias(lista_ocorrencias)
-            print(f"Ocorrência de {removida['cidade']} removida com sucesso.")
+            deletar_ocorrencia_por_indice(numero - 1)
         else:
             print("Número inválido de ocorrência.")
     else:
         print("Formato inválido.")
 
-# Main que tem todas as funções
+def orientacoes():
+    print("\n--- Orientações em caso de enchente ---")
+    print("- Mantenha a calma e procure abrigo em locais altos.")
+    print("- Evite contato com a água da enchente.")
+    print("- Desligue os aparelhos elétricos e feche o registro de água e gás.")
+    print("- Siga as orientações da Defesa Civil e Corpo de Bombeiros.")
+    print("- Se possível, leve documentos, medicamentos e itens essenciais.")
+
 def main():
-    lista_ocorrencias = carregar_ocorrencias()
     while True:
         opcao = menu()
         if opcao == 1:
-            cadastrar_ocorrencia(lista_ocorrencias)
+            cadastrar_ocorrencia()
         elif opcao == 2:
-            visualizar_estatisticas(lista_ocorrencias)
+            visualizar_ocorrencias()
         elif opcao == 3:
             orientacoes()
         elif opcao == 4:
-            deletar_ocorrencia(lista_ocorrencias)
+            deletar_ocorrencia()
         elif opcao == 5:
             print("Saindo do sistema. Até logo!")
             break
 
-main()
+if __name__ == "__main__":
+    main()
