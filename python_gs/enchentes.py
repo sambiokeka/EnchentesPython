@@ -45,9 +45,9 @@ def cadastrar_ocorrencia(lista_ocorrencias): # Essa função usa também as list
     print("\nCadastro de Ocorrência")
 
     # Usamos o .strip para melhor controle do input do usuário
-    cidade = input("Informe a cidade (Nome inteiro sem abreviações): ").strip()  # Pede a cidade que ocorreu a enchente, a cidade deve ser informada sem abreviação.
-    if(cidade == ""): # A cidade da ocorrencia deve ser informada, logo não aceita e encerra
-        print("A cidade deve ser informada!")
+    local = input("Informe a local (Nome inteiro sem abreviações): ").strip()  # Pede a local que ocorreu a enchente, a local deve ser informada sem abreviação.
+    if(local == ""): # A local da ocorrencia deve ser informada, logo não aceita e encerra
+        print("A local deve ser informada!")
         return
     
     nivel_agua = input("Nível da água em metros (se não souber deixe em branco): ") # Pede o nível da água da enchente se a pessoa não souber pode deixar em branco.
@@ -111,7 +111,7 @@ def cadastrar_ocorrencia(lista_ocorrencias): # Essa função usa também as list
     data = f"{dia:02d}/{mes:02d}/{ano}" # Converte em String e ajusta para ficar no formato DD/MM/AAAA
 
     ocorrencia = { # Sim eu sei, não foi ensinado dicionarios durante as aulas (pelo menos até agora), mas eu fiz um cursinho na alura, e nele eles falam sobre, então sim eu sei como eles funcionam fique tranquilo nenhum chat gpt foi responsável por isso
-        'cidade': cidade,
+        'local': local,
         'nivel_agua': nivel_agua,
         'pessoas_afetadas': pessoas_afetadas,
         'data': data
@@ -132,7 +132,7 @@ def visualizar_ocorrencias(lista_ocorrencias):
     for i in range(len(lista_ocorrencias)):
         ocorrencia = lista_ocorrencias[i]
         print(f"\nOcorrência {i + 1}:")
-        print(f" Cidade: {ocorrencia['cidade']}")
+        print(f" local: {ocorrencia['local']}")
 
         nivel = ocorrencia['nivel_agua']
         if(nivel == "desconhecido" or nivel is None):
@@ -173,7 +173,7 @@ def deletar_ocorrencia(lista_ocorrencias):
         numero = int(numero) # Se for um digito, converte o input em inteiro, e deleta ele.
         if(1 <= numero <= len(lista_ocorrencias)):
             removida = lista_ocorrencias.pop(numero - 1)
-            print(f"Ocorrência de {removida['cidade']} removida com sucesso.")
+            print(f"Ocorrência de {removida['local']} removida com sucesso.")
         else:
             print("Número inválido de ocorrência.")
     else:

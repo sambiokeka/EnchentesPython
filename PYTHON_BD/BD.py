@@ -35,7 +35,7 @@ def menu():
 def carregar_ocorrencias():
     conn = conectar_mysql()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT cidade, nivel_agua, pessoas_afetadas, data_enchente FROM registros")
+    cursor.execute("SELECT local, nivel_agua, pessoas_afetadas, data_enchente FROM registros")
     ocorrencias = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -45,11 +45,11 @@ def salvar_ocorrencia(ocorrencia):
     conn = conectar_mysql()
     cursor = conn.cursor()
     query = """
-        INSERT INTO registros (cidade, nivel_agua, pessoas_afetadas, data_enchente)
+        INSERT INTO registros (local, nivel_agua, pessoas_afetadas, data_enchente)
         VALUES (%s, %s, %s, %s)
     """
     cursor.execute(query, (
-        ocorrencia['cidade'],
+        ocorrencia['local'],
         None if ocorrencia['nivel_agua'] == "desconhecido" else ocorrencia['nivel_agua'],
         None if ocorrencia['pessoas_afetadas'] == "desconhecido" else ocorrencia['pessoas_afetadas'],
         ocorrencia['data_mysql']
@@ -66,7 +66,7 @@ def deletar_ocorrencia_por_indice(indice):
         cursor = conn.cursor()
         conditions = []
         params = []
-        for campo in ['cidade', 'nivel_agua', 'pessoas_afetadas', 'data_enchente']:
+        for campo in ['local', 'nivel_agua', 'pessoas_afetadas', 'data_enchente']:
             if(ocorrencia[campo] is not None):
                 conditions.append(f"{campo} = %s")
                 params.append(ocorrencia[campo])
@@ -81,15 +81,15 @@ def deletar_ocorrencia_por_indice(indice):
         conn.commit()
         cursor.close()
         conn.close()
-        print(f"Ocorrência de {ocorrencia['cidade']} removida com sucesso.")
+        print(f"Ocorrência de {ocorrencia['local']} removida com sucesso.")
     else:
         print("Número inválido de ocorrência.")
 
 def cadastrar_ocorrencia():
     print("\nCadastro de Ocorrência")
-    cidade = input("Informe a cidade (Nome inteiro sem abreviações): ").strip()
-    if(cidade == ""):
-        print("A cidade deve ser informada!")
+    local = input("Informe a local (Nome inteiro sem abreviações): ").strip()
+    if(local == ""):
+        print("A local deve ser informada!")
         return
     nivel_agua = input("Nível da água em metros (se não souber deixe em branco): ")
     if(nivel_agua == ""):
@@ -138,7 +138,7 @@ def cadastrar_ocorrencia():
 
     data_mysql = f"{ano}-{mes:02d}-{dia:02d}"
     ocorrencia = {
-        'cidade': cidade,
+        'local': local,
         'nivel_agua': nivel_agua,
         'pessoas_afetadas': pessoas_afetadas,
         'data': data,
@@ -155,7 +155,7 @@ def visualizar_ocorrencias():
         return
     for i, ocorrencia in enumerate(lista_ocorrencias):
         print(f"\nOcorrência {i+1}:")
-        print(f" Cidade: {ocorrencia['cidade']}")
+        print(f" local: {ocorrencia['local']}")
 
         nivel = ocorrencia['nivel_agua']
         if(nivel is None):

@@ -17,7 +17,7 @@ def conectar_mysql():
 
 @app.route("/cadastrar", methods=["POST"])
 def cadastrar():
-    cidade = request.form.get("cidade")
+    local = request.form.get("local")
     nivel_agua = request.form.get("nivel_agua")
     pessoas_afetadas = request.form.get("pessoas_afetadas")
     data_enchente = request.form.get("data_enchente")
@@ -35,10 +35,10 @@ def cadastrar():
     conn = conectar_mysql()
     cursor = conn.cursor()
     query = """
-        INSERT INTO registros (cidade, nivel_agua, pessoas_afetadas, data_enchente)
+        INSERT INTO registros (local, nivel_agua, pessoas_afetadas, data_enchente)
         VALUES (%s, %s, %s, %s)
     """
-    cursor.execute(query, (cidade, nivel_agua, pessoas_afetadas, data_enchente))
+    cursor.execute(query, (local, nivel_agua, pessoas_afetadas, data_enchente))
     conn.commit()
     cursor.close()
     conn.close()
